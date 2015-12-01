@@ -1,0 +1,10 @@
+.gooeycontaineritem {
+    position: fixed;
+    z-index: 10;
+}
+.gooeycontainer-top {
+    top: 0;
+}
+.gooeycontainer-bottom {
+    bottom: 0;
+}
