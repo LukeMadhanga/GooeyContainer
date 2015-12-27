@@ -19,10 +19,11 @@
             SNAP_BOTTOM: 2
         }
     };
-    var methods = {
+    var ef = function () {return;},
+    methods = {
         init: function (opts) {
-            var T = this;
-            var data = {};
+            var T = this,
+            data = {};
             if (T.length > 1) {
                 T.each(function () {
                     // Load the plugin on each of the items individually
@@ -36,29 +37,37 @@
             }
             data.instanceid = ++count;
             data.containerid = 'gooeycontainer' + data.instanceid;
+            data.state = 'normal';
             data.s = $.extend({
+                onChange: ef,
                 position: $.gooeyContainer.consts.POSITION_TOP,
-                snapon: $.gooeyContainer.consts.SNAP_TOP
+                setParentHeight: !0,
+                snapOn: $.gooeyContainer.consts.SNAP_TOP
             }, opts);
             T.data('gooeycontainerdata', data);
             
             // Start off by moving this item into a container
-            $('<div>', {'class': 'gooeycontainerparent', id: data.containerid}).insertAfter(T);
+            $('<div class="gooeycontainerparent" id="' + data.containerid + '"></div>').insertAfter(T);
             $('#' + data.containerid).append(T);
             
             $(window).on('scroll', function () {
-                var w = $(this);
-                var containerpos = $('#' + data.containerid).position();
-                var scrollpos = w.scrollTop();
-                var heightoffset = data.s.snapon === $.gooeyContainer.consts.SNAP_TOP ? 0 : T.height();
+                var w = $(this),
+                container = $('#' + data.containerid),
+                containerpos = container.position(),
+                scrollpos = w.scrollTop(),
+                heightoffset = data.s.snapOn === $.gooeyContainer.consts.SNAP_TOP ? 0 : T.height(),
+                state,
+                addorremoveclass,
+                position;
                 switch (data.s.position) {
                     case $.gooeyContainer.consts.POSITION_TOP:
                         // When the scroll position is above the snap point, allow the element to retain its original position. As soon
                         //  as the scroll position passes the snap point, snap
                         if (scrollpos >= containerpos.top + heightoffset) {
-                            T.addClass('gooeycontaineritem gooeycontainer-top');
+                            state = 'snapped';
                         } else {
-                            T.removeClass('gooeycontaineritem gooeycontainer-top');
+                            // No longer snapped
+                            state = 'normal';
                         }
                         break;
                     case $.gooeyContainer.consts.POSITION_BOTTOM:
@@ -66,13 +75,24 @@
                         //  point, return the element to its original position
                         scrollpos += w.height();
                         if (scrollpos >= containerpos.top + heightoffset) {
-                            T.removeClass('gooeycontaineritem gooeycontainer-bottom');
+                            state = 'normal';
                         } else {
-                            T.addClass('gooeycontaineritem gooeycontainer-bottom');
+                            state = 'snapped';
                         }
                         break;
                 }
-                
+                addorremoveclass = state === 'snapped' ? 'addClass' : 'removeClass';
+                position = data.s.position === $.gooeyContainer.consts.POSITION_TOP ? 'top' : 'bottom';
+                T[addorremoveclass]('gooeycontaineritem gooeycontainer-' + position);
+                container[addorremoveclass]('gooeycontainerparent-active');
+                if (data.state !== state) {
+                    // The state has changed. Update the state and then call an onchange
+                    data.state = state;
+                    data.s.onChange.call(this, {state: state});
+                    if (data.s.setParentHeight) {
+                        container.height(T[0].getBoundingClientRect().height);
+                    }
+                }
             }).scroll();
             return T;
         }
