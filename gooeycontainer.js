@@ -55,7 +55,7 @@
                 container = $('#' + data.containerid),
                 containerpos = container.position(),
                 scrollpos = w.scrollTop(),
-                heightoffset = data.s.snapOn === $.gooeyContainer.consts.SNAP_TOP ? 0 : T.height(),
+                heightoffset = data.s.snapOn === $.gooeyContainer.consts.SNAP_TOP ? 0 : T[0].getBoundingClientRect().height,
                 state,
                 addorremoveclass,
                 position;
